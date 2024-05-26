@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--<LinearLayout-->
+<!--    xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="wrap_content">-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/message_view"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:textColor="@color/cardview_dark_background"/>-->
+
+<!--</LinearLayout>-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/textView_message"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Message"
+        android:textSize="16sp" />
+
+    <ImageView
+        android:id="@+id/imageView_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="Delete message"
+        android:padding="8dp"
+        android:src="@android:drawable/ic_delete"/>
+
+<!--    Réponse auto-->
+    <CheckBox
+        android:id="@+id/checkBox_auto_response"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+<!--    Spam-->
+    <CheckBox
+        android:id="@+id/checkBox_spam"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>
+
