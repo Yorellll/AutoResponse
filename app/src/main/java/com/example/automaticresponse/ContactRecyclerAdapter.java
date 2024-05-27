@@ -9,10 +9,7 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
-
 
 //Cette class étendu de recycler view permet d'afficher l'ensemble des contacts et leurs numéro sur le layout contact
 public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecyclerAdapter.ViewHolder> {
@@ -60,7 +57,7 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
         }
     }
 
-    //Ici on définit ce que se passera à la création du ViewHolder
+    //Ici on définit ce qu'il se passera à la création du ViewHolder
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType){
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.contact_layout, viewGroup, false);

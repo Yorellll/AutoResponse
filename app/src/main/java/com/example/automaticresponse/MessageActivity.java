@@ -6,26 +6,20 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import androidx.appcompat.widget.Toolbar;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.automaticresponse.databinding.ActivityMessageBinding;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class MessageActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -115,12 +109,23 @@ public class MessageActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Obtient une référence aux préférences partagées en mode édition
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+
+                // Enregistre le message d'auto-réponse sélectionné dans les préférences partagées avec la clé appropriée
+                editor.putString("reponseAutoMessage", selectedAutoResponseMessage);
+
+                // Applique les modifications
+                editor.apply();
+
+                // Lance l'activité SpamActivity avec les données sélectionnées
                 Intent intent = new Intent(getApplicationContext(), SpamActivity.class);
                 intent.putExtra("spamMessage", selectedSpamMessage);
-                intent.putExtra("autoResponseMessage", selectedAutoResponseMessage);
                 startActivity(intent);
             }
         });
+
 
     }
 

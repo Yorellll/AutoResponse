@@ -1,20 +1,18 @@
 package com.example.automaticresponse;
 
-import static android.content.ContentValues.TAG;
-
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.util.Log;
 import android.widget.ArrayAdapter;
@@ -25,8 +23,6 @@ import android.widget.Spinner;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,54 +37,11 @@ public class SpamActivity extends AppCompatActivity {
     private String spamMessage;
     private String autoResponseMessage;
 
-    //Méthode pour vérifier sur la permission d'envoyer des sms est accordé
-    public boolean isSendPermissionGranted() {
-        // Return true if user has given his permission to send SMS
-        return ContextCompat.checkSelfPermission(this,
-                android.Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED;
-    }
-
-    //Méthode pour demander la permission d'envoyer des sms
-    public void requestSendSMS() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                Manifest.permission.SEND_SMS)) {
-            return;
-        }
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, 0);
-
-    }
-
-    //Méthode pour vérifier sur la permission de lire les sms est accordé
-    public boolean isReadPermissionGranted() {
-        // Return true if user has given his permission to read SMS
-        return ContextCompat.checkSelfPermission(this,
-                Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED;
-    }
-
-    //Méthode pour demander la permission de lire les sms
-    public void requestReadSMS() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                Manifest.permission.READ_SMS)) {
-            return;
-        }
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_SMS}, 0);
-
-    }
-
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_spam);
 
-        //Ici on commence par vérifier si les permissions sont accordés
-        if (!isSendPermissionGranted()) {
-            requestSendSMS();
-        }
-
-        if (!isReadPermissionGranted()) {
-            requestReadSMS();
-        }
         //Ici on vient chercher le spamMessage séléctionné à la tab précédente
         Intent intent = getIntent();
         spamMessage = intent.getStringExtra("spamMessage");
@@ -105,7 +58,7 @@ public class SpamActivity extends AppCompatActivity {
         Button spamContactButton = findViewById(R.id.spam_contact_button);
         autoResponseCheckBox = findViewById(R.id.toggle_auto_response);
 
-        //Ici on set le contactSpinner avec les contact du téléphone
+        //Ici on set le contactSpinner avec les contacts du téléphone
         List<String> contacts = getContacts();
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, contacts);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -124,28 +77,30 @@ public class SpamActivity extends AppCompatActivity {
 
         //Ici on set l'action à l'activation / désactivation de la checkbox
         autoResponseCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isBound) {
-                spamService.setAutoResponseEnabled(isChecked);
-            }
+            //Ici on gérer l'activation et désactivation de la réponse automatique, en stoquant son état dans le téléphone
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("reponseAutoCheck", isChecked);
+            editor.apply();
         });
     }
 
     //Ici comme la tab 1 on va chercher les contacts du téléphone
     private List<String> getContacts() {
-        // Replace this with actual logic to get contacts from the phone
+
         ArrayList<String> contacts = new ArrayList<String>();
         ArrayList<String> contactNumber = new ArrayList<String>();
 
         ContentResolver resolver = getContentResolver();
         Uri uri = ContactsContract.Contacts.CONTENT_URI; // Provider natif Android pour les informations relatives aux contacts
-        Cursor cursor = resolver.query(uri, null, null, null);
-        // On va maintenant parcourir la base de données tout en récupérant le nom des contacts
-        // et en l'ajoutant à notre RecyclerView
+        Cursor cursor = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            cursor = resolver.query(uri, null, null, null);
+        }
         while (cursor.moveToNext()) {
             @SuppressLint("Range") String displayName = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
             @SuppressLint("Range") int hasPhone = cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER));
             if (hasPhone > 0) {
-                // Le contact a un numéro de téléphone, récupérons-le
                 @SuppressLint("Range") Cursor phoneCursor = resolver.query(
                         ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                         null,
@@ -154,17 +109,14 @@ public class SpamActivity extends AppCompatActivity {
                         null
                 );
 
-                // Itérer sur les numéros de téléphone associés à ce contact
                 if (phoneCursor != null) {
                     while (phoneCursor.moveToNext()) {
                         @SuppressLint("Range") String phoneNumber = phoneCursor.getString(phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                        // Ajoutez le numéro de téléphone à votre liste ou faites autre chose avec
                         contactNumber.add(phoneNumber);
                     }
                     phoneCursor.close();
                 }
             }
-            // Ajoutez le nom du contact à votre liste
             contacts.add(displayName);
         }
         cursor.close();
@@ -172,6 +124,7 @@ public class SpamActivity extends AppCompatActivity {
         return contacts;
     }
 
+    //Ici on connecte le spam service au démarrage de SpamActivity
     @Override
     protected void onStart() {
         super.onStart();
@@ -179,6 +132,7 @@ public class SpamActivity extends AppCompatActivity {
         bindService(intent, connection, BIND_AUTO_CREATE);
     }
 
+    //Ici on déconnecte le service à l'arrêt de SpamActivity
     @Override
     protected void onStop() {
         super.onStop();
@@ -188,8 +142,10 @@ public class SpamActivity extends AppCompatActivity {
         }
     }
 
-    //Ici on définit le service qui sert à répondre automatiquement aux messages reçu même quand l'app est éteinte
+    //Ici on définit un nouveau serviceConnection, ce code permet de se connecter à un service, ici SpamService créer en amont
     private final ServiceConnection connection = new ServiceConnection() {
+
+        //On appelle onServiceConnected quand le service est connecté
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             SpamService.LocalBinder binder = (SpamService.LocalBinder) service;
@@ -197,6 +153,7 @@ public class SpamActivity extends AppCompatActivity {
             isBound = true;
         }
 
+        //Celle ci quand le service est deconnecté
         @Override
         public void onServiceDisconnected(ComponentName name) {
             isBound = false;
