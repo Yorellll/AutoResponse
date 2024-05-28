@@ -17,4 +17,6 @@
     <string name="spam">Spam</string>
     <string name="goToSpam">Gestion Spam</string>
     <string name="GoSpam">Go to spam</string>
+    <string name="activer_les_reponses_automatique">Activer les réponses automatique</string>
+    <string name="envoye_le_spam">Envoyé le spam</string>
 </resources>

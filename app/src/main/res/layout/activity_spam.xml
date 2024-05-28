@@ -44,14 +44,14 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/toolbar"
-            android:text="Spam contact"/>
+            android:text="@string/envoye_le_spam"/>
 
         <CheckBox
             android:id="@+id/toggle_auto_response"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Toggle auto-response"
+            android:text="@string/activer_les_reponses_automatique"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/spam_contact_button" />
